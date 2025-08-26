@@ -4932,6 +4932,7 @@ static struct sk_buff *napi_frags_skb(struct napi_struct *napi)
 	skb_reset_mac_header(skb);
 	skb_gro_reset_offset(skb);
 
+	eth = skb_gro_header_fast(skb, 0);
 	if (unlikely(skb_gro_header_hard(skb, hlen))) {
 		eth = skb_gro_header_slow(skb, hlen, 0);
 		if (unlikely(!eth)) {
@@ -4941,7 +4942,6 @@ static struct sk_buff *napi_frags_skb(struct napi_struct *napi)
 			return NULL;
 		}
 	} else {
-		eth = (const struct ethhdr *)skb->data;
 		gro_pull_from_frag0(skb, hlen);
 		NAPI_GRO_CB(skb)->frag0 += hlen;
 		NAPI_GRO_CB(skb)->frag0_len -= hlen;
@@ -5204,10 +5204,7 @@ bool sk_busy_loop(struct sock *sk, int nonblock)
 		goto out;
 
 	/* Note: ndo_busy_poll method is optional in linux-4.5 */
-	if (napi->dev->netdev_ops)
-		busy_poll = napi->dev->netdev_ops->ndo_busy_poll;
-	else
-		busy_poll = NULL;
+	busy_poll = napi->dev->netdev_ops->ndo_busy_poll;
 
 	do {
 		rc = 0;

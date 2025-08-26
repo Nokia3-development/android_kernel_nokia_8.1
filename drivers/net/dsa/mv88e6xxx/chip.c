@@ -789,7 +789,7 @@ static uint64_t _mv88e6xxx_get_ethtool_stat(struct mv88e6xxx_chip *chip,
 			err = mv88e6xxx_port_read(chip, port, s->reg + 1, &reg);
 			if (err)
 				return UINT64_MAX;
-			low |= ((u32)reg) << 16;
+			high = reg;
 		}
 		break;
 	case BANK0:
@@ -1742,7 +1742,7 @@ static int _mv88e6xxx_vtu_get(struct mv88e6xxx_chip *chip, u16 vid,
 	int err;
 
 	if (!vid)
-		return -EOPNOTSUPP;
+		return -EINVAL;
 
 	err = _mv88e6xxx_vtu_vid_write(chip, vid - 1);
 	if (err)

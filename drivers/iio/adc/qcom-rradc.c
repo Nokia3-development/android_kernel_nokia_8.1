@@ -199,8 +199,7 @@
 #define FG_RR_TP_REV_VERSION2		29
 #define FG_RR_TP_REV_VERSION3		32
 
-#define BATT_ID_SETTLE_SHIFT		5
-#define RRADC_BATT_ID_DELAY_MAX		8
+#define BATT_ID_SETTLE_DELAY_80_MS		0xE0
 
 /*
  * The channel number is not a physical index in hardware,
@@ -232,7 +231,6 @@ struct rradc_chip {
 	struct mutex			lock;
 	struct regmap			*regmap;
 	u16				base;
-	int				batt_id_delay;
 	struct iio_chan_spec		*iio_chans;
 	unsigned int			nchannels;
 	struct rradc_chan_prop		*chan_props;
@@ -259,8 +257,6 @@ struct rradc_chan_prop {
 	int (*scale)(struct rradc_chip *chip, struct rradc_chan_prop *prop,
 					u16 adc_code, int *result);
 };
-
-static const int batt_id_delays[] = {0, 1, 4, 12, 20, 40, 60, 80};
 
 static int rradc_masked_write(struct rradc_chip *rr_adc, u16 offset, u8 mask,
 						u8 val)
@@ -859,7 +855,7 @@ static int rradc_enable_batt_id_channel(struct rradc_chip *chip, bool enable)
 static int rradc_do_batt_id_conversion(struct rradc_chip *chip,
 		struct rradc_chan_prop *prop, u16 *data, u8 *buf)
 {
-	int rc = 0, ret = 0, batt_id_delay;
+	int rc = 0, ret = 0;
 
 	rc = rradc_enable_batt_id_channel(chip, true);
 	if (rc < 0) {
@@ -867,12 +863,11 @@ static int rradc_do_batt_id_conversion(struct rradc_chip *chip,
 		return rc;
 	}
 
-	if (chip->batt_id_delay != -EINVAL) {
-		batt_id_delay = chip->batt_id_delay << BATT_ID_SETTLE_SHIFT;
-		rc = rradc_masked_write(chip, FG_ADC_RR_BATT_ID_CFG,
-				batt_id_delay, batt_id_delay);
-		if (rc < 0)
-			pr_err("BATT_ID settling time config failed:%d\n", rc);
+	rc = rradc_masked_write(chip, FG_ADC_RR_BATT_ID_CFG,
+			BATT_ID_SETTLE_DELAY_80_MS, BATT_ID_SETTLE_DELAY_80_MS);
+	if (rc < 0) {
+		pr_err("BATT_ID settling time config failed:%d\n", rc);
+		ret = rc;
 	}
 
 	rc = rradc_masked_write(chip, FG_ADC_RR_BATT_ID_TRIGGER,
@@ -1141,21 +1136,6 @@ static int rradc_get_dt_data(struct rradc_chip *chip, struct device_node *node)
 			"Couldn't find reg in node = %s rc = %d\n",
 			node->name, rc);
 		return rc;
-	}
-
-	chip->batt_id_delay = -EINVAL;
-
-	rc = of_property_read_u32(node, "qcom,batt-id-delay-ms",
-			&chip->batt_id_delay);
-	if (!rc) {
-		for (i = 0; i < RRADC_BATT_ID_DELAY_MAX; i++) {
-			if (chip->batt_id_delay == batt_id_delays[i])
-				break;
-		}
-		if (i == RRADC_BATT_ID_DELAY_MAX)
-			pr_err("Invalid batt_id_delay, rc=%d\n", rc);
-		else
-			chip->batt_id_delay = i;
 	}
 
 	chip->base = base;
