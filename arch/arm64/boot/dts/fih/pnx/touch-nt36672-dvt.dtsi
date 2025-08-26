@@ -1,5 +1,10 @@
 &qupv3_se9_i2c {
 	status = "okay";
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&qupv3_se9_i2c_active>;
+	pinctrl-1 = <&qupv3_se9_i2c_sleep>;
+	qcom,clk-freq-out = <400000>;
+	qcom,clk-freq-in  = <19200000>;
 
 	/* Novatek device tree node */
 	novatek@62 {

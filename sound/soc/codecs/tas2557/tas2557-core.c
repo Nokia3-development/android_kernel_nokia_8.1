@@ -1684,8 +1684,8 @@ end:
 	}
 
 	dev_err(pTAS2557->dev, "TBC: sizeof(reginfo_tail)=%ld, start memcpy from %p\n", sizeof(reginfo_tail), (void*)(buf+sizeof(reginfo)+nSize));
-	memcpy(&reginfo_tail,  (void *)(buf+sizeof(reginfo)+nSize), sizeof(reginfo_tail));
-	dev_err(pTAS2557->dev, "Magic=0x%x,Reserved=0x%x\r\n", reginfo_tail.Magic, reginfo_tail.Reserved);
+	memcpy(&reginfo_tail,  (void *)(buf+sizeof(reginfo)+nSize), 2);
+	dev_err(pTAS2557->dev, "Magic=0x%x\r\n", reginfo_tail.Magic);
 
 	iounmap(buf);
 
@@ -1702,6 +1702,8 @@ end:
 	tas2557_clear_firmware(pTAS2557->mpCalFirmware);
 	dev_info(pTAS2557->dev, "TAS2557 calibration data length = %d\n", nSize);
 	nResult = fw_parse(pTAS2557, pTAS2557->mpCalFirmware, pfwBuffer, nSize);
+	
+	dev_err(pTAS2557->dev, "Check point Magic=0x%x\r\n", reginfo_tail.Magic);
 
 	if (nResult)
 		dev_err(pTAS2557->dev, "TAS2557 calibration data is corrupt\n");

@@ -944,6 +944,15 @@ static void nvt_ts_work_func(struct work_struct *work)
 		if (bTouchIsAwake == 0) {
 			input_id = (uint8_t)(point_data[1] >> 3);
 			nvt_ts_wakeup_gesture_report(input_id, point_data);
+
+			for (i = 0; i < 10; i++) {
+				NVT_ERR("%02X %02X %02X %02X %02X %02X\n", point_data[1+i*6], point_data[2+i*6],
+						point_data[3+i*6], point_data[4+i*6], point_data[5+i*6], point_data[6+i*6]);
+			}
+			for (i = 0; i < (POINT_DATA_LEN - 60); i++) {
+				NVT_ERR("%02X \n", point_data[1+60+i]);
+			}
+
 			enable_irq(ts->client->irq);
 			mutex_unlock(&ts->lock);
 			return;

@@ -3347,7 +3347,6 @@ long kgsl_ioctl_sparse_phys_alloc(struct kgsl_device_private *dev_priv,
 	if (!(device->flags & KGSL_FLAG_SPARSE))
 		return -ENOTSUPP;
 
-
 	ret = _sparse_alloc_param_sanity_check(param->size, param->pagesize);
 	if (ret)
 		return ret;

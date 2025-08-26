@@ -3711,7 +3711,7 @@ void himax_read_FW_ver(struct i2c_client *client)
 int himax_fw_ver_bin(void)
 {
 	I("%s:Entering!\n", __func__);
-	if (i_CTPM_FW != '\0') {
+	if (i_CTPM_FW != NULL) {
 		I("Catch fw version in bin file!\n");
 		g_i_FW_VER = (i_CTPM_FW[FW_VER_MAJ_FLASH_ADDR] << 8) | i_CTPM_FW[FW_VER_MIN_FLASH_ADDR];
 		g_i_CFG_VER = (i_CTPM_FW[CFG_VER_MAJ_FLASH_ADDR] << 8) | i_CTPM_FW[CFG_VER_MIN_FLASH_ADDR];
